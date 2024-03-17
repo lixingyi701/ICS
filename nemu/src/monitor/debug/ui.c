@@ -38,6 +38,36 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
+static int cmd_si(char *args)
+{
+	int n=1;
+	if(args!=NULL)
+	{
+		sscanf(args,"%d",&n);
+		if(n<=0)
+		{
+			printf("args<=0");
+			return 0;
+		}
+	}
+	cpu_exec(n);
+	return 0;
+}
+
+static int cmd_info(char *args)
+{
+	if(*args=='r')
+	{
+		for(int i=R_EAX;i<=R_EDI;i++)
+		{
+			printf("%s\t0x%08x\n",regsl[i],reg_l(i));
+		}
+		printf("eip\t0x%08x\n",cpu.eip);
+	}
+
+	return 0;
+}
+
 static struct {
   char *name;
   char *description;
@@ -48,6 +78,9 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
 
   /* TODO: Add more commands */
+
+  { "si","One-step exec",cmd_si},
+  { "info","Print program state",cmd_info}
 
 };
 
