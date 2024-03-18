@@ -80,6 +80,22 @@ static int cmd_x(char *args)
 	return 0;
 }
 
+static int cmd_p(char *args)
+{
+	bool success;
+	int re=expr(args,&success);
+	if(success)
+	{
+		printf("expr=%d\n",re);
+	}
+	else
+	{
+		printf("make token fail\n");
+	}
+
+	return 0;
+}
+
 static struct {
   char *name;
   char *description;
@@ -93,7 +109,8 @@ static struct {
 
   { "si","One-step exec",cmd_si},
   { "info","Print program state",cmd_info},
-  { "x","Print memory",cmd_x}
+  { "x","Print memory",cmd_x},
+  { "p","expr",cmd_p}
 
 };
 
