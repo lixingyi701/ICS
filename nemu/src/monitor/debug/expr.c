@@ -144,14 +144,265 @@ static bool make_token(char *e) {
   return true;
 }
 
+bool check_parentheses(int p,int q)
+{	
+	bool fan=false;
+	if(p>=q)
+	{
+		printf("error:p>=q,no parent");
+		assert(0);
+	}
+	if(tokens[p].type=='('&&tokens[q].type==')')
+	{
+		int pair=0;
+		for(int i=p+1;i<=q-1;i++)
+		{
+			if(tokens[i].type=='(')
+			{
+				pair++;
+			}
+			if(tokens[i].type==')')
+			{
+				if(pair>0)
+				{
+					pair--;
+				}
+				else if(pair==0)
+				{
+					fan=true;
+					pair--;
+					printf("p not match q\n");
+				}
+				else 
+				{
+					printf("error:no(before)");
+					assert(0);
+				}
+
+			}
+		}
+		if(pair==0)
+		{
+			if(fan)
+			{
+				return false;
+			}
+			return true;
+		}
+		else 
+		{
+			printf("error:more(than)");
+			assert(0);
+		}
+	}
+	else 
+	{
+		return false;
+	}
+
+}
+
+int priority(int tk)
+{
+	switch(tk)
+	{
+		case TK_OR:
+			return 1;
+		case TK_AND:
+			return 2;
+		case TK_EQ:
+		case TK_NEQ:
+			return 3;
+		case '+':
+		case '-':
+			return 4;
+		case '*':
+		case '/':
+			return 5;
+		case '!':
+		case TK_MINUS:
+		case TK_POINTER:
+			return 6;
+
+		default:
+			return 0;
+	}
+}
+
+int findDominant(int p,int q)
+{
+	int re=-1,pro=7;
+	for(int i=p;i<=q;i++)
+	{
+		if(tokens[i].type>=TK_NUM&&tokens[i].type<=TK_REG)
+		{
+			continue;
+		}
+		if(tokens[i].type=='(')
+		{
+			int pair=1;
+			i++;
+			while(pair!=0)
+			{
+				if(tokens[i].type==')')
+				{
+					pair--;
+				}
+				if(tokens[i].type=='(')
+				{
+					pair++;
+				}
+				i++;
+			}
+			i--;
+			continue;
+		}
+		if(priority(tokens[i].type)<=pro)
+		{
+			re=i;
+			pro=priority(tokens[i].type);
+		}
+
+	}
+	return re;
+}
+
+uint32_t eval(int p,int q)
+{
+	if(p>q)
+	{
+		printf("error:p>q");
+		assert(0);
+	}
+	else if(p==q)
+	{
+		if(tokens[p].type==TK_NUM)
+		{
+			int temp;
+			sscanf(tokens[p].str,"%d",&temp);
+			return temp;
+
+		}
+		else if(tokens[p].type==TK_HEX)
+		{
+			int temp;
+			sscanf(tokens[p].str,"%x",&temp);
+			return temp;
+
+		}
+		else if(tokens[p].type==TK_REG)
+		{
+			for(int i=0;i<8;i++)
+			{
+				if(strcmp(tokens[p].str,regsl[i])==0)
+				{
+					return reg_l(i);
+				}
+				if(strcmp(tokens[p].str,regsw[i])==0)
+				{
+					return reg_w(i);
+				}
+				if(strcmp(tokens[p].str,regsb[i])==0)
+				{
+					return reg_b(i);
+				}
+			}
+		}
+		else if(strcmp(tokens[p].str,"eip")==0)
+		{
+			return cpu.eip;
+		}
+		else
+		{
+			printf("error:p=q,but type wrong");
+			assert(0);
+		}
+
+	}
+	else if(check_parentheses(p,q)==true)
+	{
+		return eval(p+1,q-1);
+	}
+	else
+	{
+		int op=findDominant(p,q);
+		if(tokens[op].type==TK_MINUS)
+		{
+			return -eval(p+1,q);
+		}
+		if(tokens[op].type==TK_POINTER)
+		{
+			vaddr_t addr;
+			addr=eval(p+1,q);
+			int re=vaddr_read(addr,4);
+			return re;
+		}
+		if(tokens[op].type=='!')
+		{
+			int re=eval(p+1,q);
+			if(re)
+			{
+				return 0;
+			}
+			else 
+			{
+				return 1;
+			}
+		}
+		uint32_t val1=eval(p,op-1);
+		uint32_t val2=eval(op+1,q);
+		switch(tokens[op].type)
+		{
+			case '+':
+			return val1+val2;
+			case '-':
+				return val1-val2;
+			case '*':
+				return val1*val2;
+			case '/':
+				return val1/val2;
+			case TK_EQ:
+				return val1==val2;
+			case TK_NEQ:
+				return val1!=val2;
+			case TK_AND:
+				return val1&&val2;
+			case TK_OR:
+				return val1||val2;
+			default: 
+				assert(0);
+		}
+	}
+	return 0;
+}
+
 uint32_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;
   }
+  if(tokens[0].type=='-')
+  {
+	  tokens[0].type=TK_MINUS;
+  }
+  if(tokens[0].type=='*')
+  {
+	  tokens[0].type=TK_POINTER;
+  }
+  for(int i=1;i<nr_token;i++)
+  {
+	if(tokens[i].type=='-'&&tokens[i-1].type!=TK_NUM&&tokens[i-1].type!=TK_HEX&&tokens[i-1].type!=TK_REG&&tokens[i-1].type!=')')
+	{
+		tokens[i].type=TK_MINUS;
+	}
+	if(tokens[i].type=='*'&&tokens[i-1].type!=TK_NUM&&tokens[i-1].type!=TK_HEX&&tokens[i-1].type!=TK_REG&&tokens[i-1].type!=')')
+	{
+		tokens[i].type=TK_POINTER;
+	}
+  }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
-
-  return 0;
+  *success=true;
+	
+  return eval(0,nr_token-1);
 }
