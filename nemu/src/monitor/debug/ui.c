@@ -68,6 +68,18 @@ static int cmd_info(char *args)
 	return 0;
 }
 
+static int cmd_x(char *args)
+{
+	int n;
+	uint32_t expr;
+	sscanf(args,"%d 0x%x",&n,&expr);
+	for(int i=0;i<n;i++)
+	{
+		printf("0x%08x\n",vaddr_read(expr+i*4,4));
+	}
+	return 0;
+}
+
 static struct {
   char *name;
   char *description;
@@ -80,7 +92,8 @@ static struct {
   /* TODO: Add more commands */
 
   { "si","One-step exec",cmd_si},
-  { "info","Print program state",cmd_info}
+  { "info","Print program state",cmd_info},
+  { "x","Print memory",cmd_x}
 
 };
 
