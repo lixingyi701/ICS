@@ -7,10 +7,17 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ
+  TK_NOTYPE = 256, TK_EQ,
 
   /* TODO: Add more token types */
-
+  TK_NUM,
+  TK_HEX,
+  TK_REG,
+  TK_NEQ,
+  TK_AND,
+  TK_OR,
+  TK_MINUS,
+  TK_POINTER
 };
 
 static struct rule {
@@ -24,7 +31,20 @@ static struct rule {
 
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
-  {"==", TK_EQ}         // equal
+  {"==", TK_EQ},        // equal
+
+  {"-",'-'},
+  {"\\*",'*'},
+  {"/",'/'},
+  {"\\(",'('},
+  {"\\)",')'},
+  {"0[xX][0-9A-Fa-f]+",TK_HEX},
+  {"[1-9][0-9]*|0",TK_NUM},
+  {"\\$(eax|ebx|ecx|edx|esp|ebp|esi|edi|eip|ax|bx|cx|dx|bp|sp|si|di|al|bl|cl|dl|bl|ah|ch|dh|bh)",TK_REG},
+  {"!=",TK_NEQ},
+  {"&&",TK_AND},
+  {"\\|\\|",TK_OR},
+  {"!",'!'}
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -78,9 +98,37 @@ static bool make_token(char *e) {
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
+        if(substr_len>32)
+        {
+            printf("length over 32");
+            assert(0);
+        }
+        switch (rules[i].token_type) 
+        {
+            case TK_NOTYPE:
+                break;
+            case TK_NUM:
+                tokens[nr_token].type=rules[i].token_type;
+                strncpy(tokens[nr_token].str,substr_start,substr_len);
+                tokens[nr_token].str[substr_len]='\0';
+                nr_token++;
+                break;
+            case TK_HEX:
+                tokens[nr_token].type=rules[i].token_type;
+                strncpy(tokens[nr_token].str,substr_start+2,substr_len-2);
+                tokens[nr_token].str[substr_len-2]='\0';
+                nr_token++;
+                break;
+            case TK_REG:
+                tokens[nr_token].type=rules[i].token_type;
+                strncpy(tokens[nr_token].str,substr_start+1,substr_len-1);
+                tokens[nr_token].str[substr_len-1]='\0';
+                nr_token++;
+                break;
 
-        switch (rules[i].token_type) {
-          default: TODO();
+            default: 
+                tokens[nr_token].type=rules[i].token_type;	
+                nr_token++;
         }
 
         break;
