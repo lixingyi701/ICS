@@ -96,6 +96,27 @@ static int cmd_p(char *args)
 	return 0;
 }
 
+static int cmd_w(char* args){
+	new_wp(args);
+	return 0;
+}
+
+static int cmd_d(char* args){
+	int num=0;
+	int nRet=sscanf(args,"%d",&num);
+	if(nRet<=0){
+		printf("args error in cmd_si\n");
+		return 0;
+	}
+	int r=free_wp(num);
+	if(r==false){
+		printf("error: no watchpoint %d\n",num);
+	}
+	else{
+		printf("success delete watchpoint %d\n",num);
+	}
+	return 0;
+}
 static struct {
   char *name;
   char *description;
@@ -110,8 +131,9 @@ static struct {
   { "si","One-step exec",cmd_si},
   { "info","Print program state",cmd_info},
   { "x","Print memory",cmd_x},
-  { "p","expr",cmd_p}
-
+  { "p","expr",cmd_p},
+  { "w","set wp",cmd_w},
+  { "d","delete wp",cmd_d}
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
