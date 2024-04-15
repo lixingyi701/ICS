@@ -37,7 +37,6 @@ static int cmd_q(char *args) {
 }
 
 static int cmd_help(char *args);
-
 static int cmd_si(char *args)
 {
 	int n=1;
@@ -53,7 +52,6 @@ static int cmd_si(char *args)
 	cpu_exec(n);
 	return 0;
 }
-
 static int cmd_info(char *args)
 {
 	if(*args=='r')
@@ -64,12 +62,12 @@ static int cmd_info(char *args)
 		}
 		printf("eip\t0x%08x\n",cpu.eip);
 	}
-	else if(*args=='w'){
+	else if(*args=='w')
+	{
 		print_wp();
 	}
 	return 0;
 }
-
 static int cmd_x(char *args)
 {
 	int n;
@@ -81,7 +79,6 @@ static int cmd_x(char *args)
 	}
 	return 0;
 }
-
 static int cmd_p(char *args)
 {
 	bool success;
@@ -97,26 +94,21 @@ static int cmd_p(char *args)
 
 	return 0;
 }
-
-static int cmd_w(char* args){
-	new_wp(args);
+static int cmd_w(char *args)
+{
+	bool success;
+	uint32_t val=expr(args,&success);
+	WP*wp=new_wp();
+	wp->val=val;
+	strcpy(wp->expr,args);
+	printf("new_wp,NO=%d,expr=%s,val=%d\n",wp->NO,wp->expr,wp->val);
 	return 0;
 }
-
-static int cmd_d(char* args){
-	int num=0;
-	int nRet=sscanf(args,"%d",&num);
-	if(nRet<=0){
-		printf("args error in cmd_si\n");
-		return 0;
-	}
-	int r=free_wp(num);
-	if(r==false){
-		printf("error: no watchpoint %d\n",num);
-	}
-	else{
-		printf("success delete watchpoint %d\n",num);
-	}
+static int cmd_d(char* args)
+{
+	int no;
+	sscanf(args,"%d",&no);
+	free_wp(no);
 	return 0;
 }
 static struct {
@@ -127,15 +119,14 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
-  /* TODO: Add more commands */
-
   { "si","One-step exec",cmd_si},
   { "info","Print program state",cmd_info},
   { "x","Print memory",cmd_x},
   { "p","expr",cmd_p},
   { "w","set wp",cmd_w},
   { "d","delete wp",cmd_d}
+  /* TODO: Add more commands */
+
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))

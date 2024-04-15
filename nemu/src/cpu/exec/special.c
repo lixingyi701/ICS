@@ -31,7 +31,11 @@ make_EHelper(inv) {
 
   print_asm("invalid opcode");
 }
-
+make_EHelper(endbr)
+{
+	instr_fetch(eip,id_src->width);
+	print_asm("endbr");
+}
 make_EHelper(nemu_trap) {
   print_asm("nemu trap (eax = %d)", cpu.eax);
 

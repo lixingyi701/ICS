@@ -34,7 +34,6 @@ typedef struct {
   };
  };
   vaddr_t eip;
-
   struct eflags{
   	unsigned int CF:1;
 	unsigned int :5;
@@ -47,7 +46,6 @@ typedef struct {
 	unsigned int :20;
 
   }eflags;
-
 } CPU_state;
 
 extern CPU_state cpu;

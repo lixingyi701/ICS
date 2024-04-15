@@ -7,9 +7,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
-
-  /* TODO: Add more token types */
+  TK_NOTYPE = 256,
   TK_NUM,
   TK_HEX,
   TK_REG,
@@ -17,7 +15,11 @@ enum {
   TK_AND,
   TK_OR,
   TK_MINUS,
-  TK_POINTER
+  TK_POINTER,
+  TK_EQ
+
+  /* TODO: Add more token types */
+
 };
 
 static struct rule {
@@ -31,8 +33,6 @@ static struct rule {
 
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
-  {"==", TK_EQ},        // equal
-
   {"-",'-'},
   {"\\*",'*'},
   {"/",'/'},
@@ -44,7 +44,8 @@ static struct rule {
   {"!=",TK_NEQ},
   {"&&",TK_AND},
   {"\\|\\|",TK_OR},
-  {"!",'!'}
+  {"!",'!'},
+  {"==", TK_EQ}         // equal
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -98,37 +99,36 @@ static bool make_token(char *e) {
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
-        if(substr_len>32)
-        {
-            printf("length over 32");
-            assert(0);
-        }
-        switch (rules[i].token_type) 
-        {
-            case TK_NOTYPE:
-                break;
-            case TK_NUM:
-                tokens[nr_token].type=rules[i].token_type;
-                strncpy(tokens[nr_token].str,substr_start,substr_len);
-                tokens[nr_token].str[substr_len]='\0';
-                nr_token++;
-                break;
-            case TK_HEX:
-                tokens[nr_token].type=rules[i].token_type;
-                strncpy(tokens[nr_token].str,substr_start+2,substr_len-2);
-                tokens[nr_token].str[substr_len-2]='\0';
-                nr_token++;
-                break;
-            case TK_REG:
-                tokens[nr_token].type=rules[i].token_type;
-                strncpy(tokens[nr_token].str,substr_start+1,substr_len-1);
-                tokens[nr_token].str[substr_len-1]='\0';
-                nr_token++;
-                break;
+	if(substr_len>32)
+	{
+		printf("length over 32");
+		assert(0);
+	}
+        switch (rules[i].token_type) {
+	  case TK_NOTYPE:
+		  break;
+	  case TK_NUM:
+		  tokens[nr_token].type=rules[i].token_type;
+		  strncpy(tokens[nr_token].str,substr_start,substr_len);
+		  tokens[nr_token].str[substr_len]='\0';
+		  nr_token++;
+		  break;
+	  case TK_HEX:
+		  tokens[nr_token].type=rules[i].token_type;
+		  strncpy(tokens[nr_token].str,substr_start+2,substr_len-2);
+		  tokens[nr_token].str[substr_len-2]='\0';
+		  nr_token++;
+		  break;
+	  case TK_REG:
+		  tokens[nr_token].type=rules[i].token_type;
+		  strncpy(tokens[nr_token].str,substr_start+1,substr_len-1);
+		  tokens[nr_token].str[substr_len-1]='\0';
+		  nr_token++;
+		  break;
 
-            default: 
-                tokens[nr_token].type=rules[i].token_type;	
-                nr_token++;
+          default: 
+		  tokens[nr_token].type=rules[i].token_type;	
+		  nr_token++;
         }
 
         break;
@@ -143,7 +143,6 @@ static bool make_token(char *e) {
 
   return true;
 }
-
 bool check_parentheses(int p,int q)
 {	
 	bool fan=false;
@@ -201,7 +200,6 @@ bool check_parentheses(int p,int q)
 	}
 
 }
-
 int priority(int tk)
 {
 	switch(tk)
@@ -228,7 +226,6 @@ int priority(int tk)
 			return 0;
 	}
 }
-
 int findDominant(int p,int q)
 {
 	int re=-1,pro=7;
@@ -266,7 +263,6 @@ int findDominant(int p,int q)
 	}
 	return re;
 }
-
 uint32_t eval(int p,int q)
 {
 	if(p>q)
@@ -375,7 +371,6 @@ uint32_t eval(int p,int q)
 	}
 	return 0;
 }
-
 uint32_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
