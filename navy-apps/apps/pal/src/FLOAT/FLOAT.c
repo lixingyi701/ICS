@@ -1,6 +1,7 @@
 #include "FLOAT.h"
 #include <stdint.h>
 #include <assert.h>
+#define __scale(x) (__sign(x) ? -(x) : (x))
 
 FLOAT F_mul_F(FLOAT a, FLOAT b) {
     return (a * b) >> 16;
@@ -60,8 +61,7 @@ FLOAT f2F(float a) {
 }
 
 FLOAT Fabs(FLOAT a) {
-  assert(0);
-  return 0;
+    return __scale(a);
 }
 
 /* Functions below are already implemented */
