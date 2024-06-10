@@ -332,3 +332,10 @@ make_DHelper(mov_store_cr) {
   snprintf(id_src->str, 5, "%%cr%d", id_dest->reg);
 #endif
 }
+
+/* use for shld/shrd */
+make_DHelper(Ib_G2E) {
+  decode_op_rm(eip, id_dest, true, id_src2, true);
+  id_src->width = 1;
+  decode_op_I(eip, id_src, true);
+}

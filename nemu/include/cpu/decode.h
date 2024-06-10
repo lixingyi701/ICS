@@ -113,4 +113,6 @@ make_DHelper(out_a2I);
 make_DHelper(out_a2dx);
 make_DHelper(mov_load_cr);
 make_DHelper(mov_store_cr);
+
+make_DHelper(Ib_G2E);
 #endif

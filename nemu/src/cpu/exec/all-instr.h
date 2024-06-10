@@ -59,3 +59,5 @@ make_EHelper(lidt);
 make_EHelper(movsb);
 make_EHelper(lidt);
 make_EHelper(movsb);
+make_EHelper(shrd);
+make_EHelper(shld);
