@@ -32,11 +32,12 @@ int main() {
 
   //uint32_t entry = loader(NULL, "/bin/bmptest");
   //((void (*)(void))entry)();
-  extern void load_prog(const char*filename);
-  load_prog("/bin/pal");
-  load_prog("/bin/hello");
-  load_prog("/bin/videotest");
-
+//   extern void load_prog(const char*filename);
+//   load_prog("/bin/pal");
+//   load_prog("/bin/hello");
+//   load_prog("/bin/videotest");
+  uint32_t entry = loader(NULL, "/bin/pal");
+  ((void(*)(void))entry)();
 
   _trap();
 
